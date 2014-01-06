@@ -16,53 +16,59 @@
         if (this.length < 1)
             return;
 
-        var $t        = this.length > 1 ? this.eq(0) : this,
-            t         = $t.get(0),
-            vpWidth   = $w.width(),
-            vpHeight  = $w.height(),
-            direction = (direction) ? direction : 'both',
-            clientSize = hidden === true ? t.offsetWidth * t.offsetHeight : true;
+        var $t = this.length > 1 ? this.eq(0) : this,
+            t  = $t.get(0),
+            vpHeight = $w.height(),
+            vpWidth  = $w.width(),
+            direction  = (direction) ? direction : 'both',
+            clientSize = hidden === true ? t.offsetWidth * t.offsetHeight : true,
+            rec = getRec1($t) || getRec2($t),
+            tViz = rec.top    >= 0 && rec.top    <  vpHeight,
+            bViz = rec.bottom >  0 && rec.bottom <= vpHeight,
+            lViz = rec.left   >= 0 && rec.left   <  vpWidth,
+            rViz = rec.right  >  0 && rec.right  <= vpWidth,
+            vVisible   = partial ? tViz || bViz : tViz && bViz,
+            hVisible   = partial ? lViz || lViz : lViz && rViz;
 
-        if (typeof t.getBoundingClientRect === 'function'){
-
-            // Use this native browser method, if available.
-            var rec = t.getBoundingClientRect(),
-                tViz = rec.top    >= 0 && rec.top    <  vpHeight,
-                bViz = rec.bottom >  0 && rec.bottom <= vpHeight,
-                lViz = rec.left   >= 0 && rec.left   <  vpWidth,
-                rViz = rec.right  >  0 && rec.right  <= vpWidth,
-                vVisible   = partial ? tViz || bViz : tViz && bViz,
-                hVisible   = partial ? lViz || lViz : lViz && rViz;
-
-            if(direction === 'both')
-                return clientSize && vVisible && hVisible;
-            else if(direction === 'vertical')
-                return clientSize && vVisible;
-            else if(direction === 'horizontal')
-                return clientSize && hVisible;
-        } else {
-
-            var viewTop         = $w.scrollTop(),
-                viewBottom      = viewTop + vpHeight,
-                viewLeft        = $w.scrollLeft(),
-                viewRight       = viewLeft + vpWidth,
-                offset          = $t.offset(),
-                _top            = offset.top,
-                _bottom         = _top + $t.height(),
-                _left           = offset.left,
-                _right          = _left + $t.width(),
-                compareTop      = partial === true ? _bottom : _top,
-                compareBottom   = partial === true ? _top : _bottom,
-                compareLeft     = partial === true ? _right : _left,
-                compareRight    = partial === true ? _left : _right;
-
-            if(direction === 'both')
-                return !!clientSize && ((compareBottom <= viewBottom) && (compareTop >= viewTop)) && ((compareRight <= viewRight) && (compareLeft >= viewLeft));
-            else if(direction === 'vertical')
-                return !!clientSize && ((compareBottom <= viewBottom) && (compareTop >= viewTop));
-            else if(direction === 'horizontal')
-                return !!clientSize && ((compareRight <= viewRight) && (compareLeft >= viewLeft));
-        }
+        if(direction === 'both')
+            return clientSize && vVisible && hVisible;
+        else if(direction === 'vertical')
+            return clientSize && vVisible;
+        else if(direction === 'horizontal')
+            return clientSize && hVisible;
     };
 
+    function getRec1($el){
+        var el = $el[0];
+        if (typeof el.getBoundingClientRect !== 'function')
+            return;
+        return el.getBoundingClientRect();
+    }
+
+    function getRec2($el){
+        var offset = $el.offset(),
+            elTop = offset.top,
+            elLeft = offset.left,
+            scrollTop = $w.scrollTop(),
+            scrollLeft = $w.scrollLeft(),
+            top = elTop - scrollTop,
+            left = elLeft - scrollLeft,
+            elHeight = $el.height(),
+            elWidth = $el.width();
+        return {
+            top: top,
+            left: left,
+            bottom: top + elHeight,
+            right: left + elWidth
+        };
+    }
+
 })(jQuery);
+
+
+
+
+
+
+
+
